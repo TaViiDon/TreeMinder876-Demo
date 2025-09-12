@@ -1,17 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+An application to count and continuously track trees in a wide area. We will encourage a collective effort from officials to repeatedly snap photos of trees in an area, and then employ AI image recognition technology to count trees and assess health, as well as geolocation technology to determine the area it is located so we can map it. With this, we will be able to provide an interactive map to view the density and health of trees in a large area and analyze and predict its health, as well as suggestions to ensure its longevity.
 
 ## Getting Started
+
+### Step 1: Install dependencies
+
+```
+npm install
+```
+
+### Step 2: Populate `.env` file
+
+Ensure all variables in the `.env` file is populated
+
+### Step 3: Migrate prisma schema to database
+
+You will need to run this repeatedly as the prisma schema changes:
+```
+npx prisma push
+```
+
+### Step 4: Generate prisma client
+
+You will need to run this repeatedly as the prisma schema changes:
+```
+npx prisma generate
+```
+
+### Step 5: Run the app
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
