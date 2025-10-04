@@ -1,7 +1,7 @@
 "use server"
 
 import { auth } from "@/auth"
-import { createMapSchema } from "@/lib/schema"
+import { createMapSchema } from "../lib/schema"
 import { prisma } from "@/prisma"
 import { headers } from "next/headers"
 import z from "zod"
@@ -15,7 +15,8 @@ export async function createMap(data: z.infer<typeof createMapSchema>) {
         return Promise.reject("Not authenticated")
     }
 
-    const existingMap = await prisma.map.findFirst({
+    const p: any = prisma
+    const existingMap = await p.map.findFirst({
         where: { name: data.name }
     })
 
@@ -23,7 +24,7 @@ export async function createMap(data: z.infer<typeof createMapSchema>) {
         return Promise.reject("A map with this name already exists")
     }
 
-    await prisma.map.create({
+    await p.map.create({
         data: {
             name: data.name,
             ownerId: session.user.id

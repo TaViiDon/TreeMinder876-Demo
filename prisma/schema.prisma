@@ -1,12 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -14,81 +9,109 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Map {
-  id      Int     @id @default(autoincrement())
-  name    String  @unique
-  ownerId String?
-
-  owner        User?  @relation(name: "OwnedMaps", fields: [ownerId], references: [id])
-  InvitedUsers User[] @relation(name: "InvitedMaps")
-  Trees        Tree[]
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          UserRole  @default(CUSTODIAN)
+  profileImage  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relationships
+  plantedTrees  Tree[]
+  organizations OrganizationUser[]
+  
+  @@map("users")
 }
 
 model Tree {
-  id    Int @id @default(autoincrement())
-  mapId Int
-  Map   Map @relation(fields: [mapId], references: [id])
+  id          String   @id @default(cuid())
+  treeId      String   @unique // External tree ID like "7007876"
+  species     String?
+  plantedDate DateTime
+  latitude    Float
+  longitude   Float
+  status      TreeStatus @default(HEALTHY)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  planterId   String
+  planter     User     @relation(fields: [planterId], references: [id])
+  
+  // optional organization relation
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  images      TreeImage[]
+  updates     TreeUpdate[]
+  
+  @@map("trees")
 }
 
-model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-
-  OwnedMaps   Map[] @relation(name: "OwnedMaps")
-  InvitedMaps Map[] @relation(name: "InvitedMaps")
-
-  @@unique([email])
-  @@map("user")
-}
-
-model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
+model TreeImage {
+  id        String   @id @default(cuid())
+  url       String
+  caption   String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([token])
-  @@map("session")
+  
+  treeId    String
+  tree      Tree     @relation(fields: [treeId], references: [id])
+  
+  @@map("tree_images")
 }
 
-model Account {
-  id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  password              String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  @@map("account")
+model TreeUpdate {
+  id          String   @id @default(cuid())
+  description String
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  
+  treeId      String
+  tree        Tree     @relation(fields: [treeId], references: [id])
+  
+  @@map("tree_updates")
 }
 
-model Verification {
-  id         String   @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  
+  // Relationships
+  users       OrganizationUser[]
+  trees       Tree[]
+  
+  @@map("organizations")
+}
 
-  @@map("verification")
+model OrganizationUser {
+  id             String @id @default(cuid())
+  userId         String
+  organizationId String
+  role           OrganizationRole @default(MEMBER)
+  
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  @@unique([userId, organizationId])
+  @@map("organization_users")
+}
+
+enum UserRole {
+  SUPPLIER
+  CUSTODIAN
+}
+
+enum TreeStatus {
+  HEALTHY
+  NEEDS_ATTENTION
+  DECEASED
+}
+
+enum OrganizationRole {
+  ADMIN
+  MEMBER
 }

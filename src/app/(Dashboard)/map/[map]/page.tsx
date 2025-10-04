@@ -1,7 +1,7 @@
 import { auth } from "@/auth"
 import { headers } from "next/headers"
 import { notFound, unauthorized } from "next/navigation"
-import Map from "@/components/features/Dashboard/Map"
+import MapViewer from "@/components/MapViewer"
 import { prisma } from "@/prisma"
 
 export default async function Page({ params }: { params: Promise<{ map: string }> }) {
@@ -17,7 +17,8 @@ export default async function Page({ params }: { params: Promise<{ map: string }
     return unauthorized()
   }
 
-  const mapModel = await prisma.map.findFirst({
+  const p: any = prisma
+  const mapModel = await p.map.findFirst({
     where: { name: mapName },
     include: { InvitedUsers: true }
   })
@@ -27,7 +28,7 @@ export default async function Page({ params }: { params: Promise<{ map: string }
   }
 
   const isOwner = session.user.id === mapModel.ownerId
-  const isInvited = mapModel.ownerId == null || mapModel.InvitedUsers.find(user => user.id === session.user.id)
+  const isInvited = mapModel.ownerId == null || mapModel.InvitedUsers.find((user: any) => user.id === session.user.id)
 
   if (!isOwner && !isInvited) {
     return unauthorized()
@@ -35,7 +36,7 @@ export default async function Page({ params }: { params: Promise<{ map: string }
 
   return (
     <>
-      <Map />
+    <MapViewer />
     </>
   )
 }
